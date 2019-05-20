@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#FF8800</color>
+    <color name="colorPrimaryDark">#FF8800</color>
+    <color name="colorAccent">#FF8800</color>
+    <color name="loginSignInButton">#FF2900</color>
+</resources>

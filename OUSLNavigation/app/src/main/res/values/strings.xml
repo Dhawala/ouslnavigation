@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">OUSL Navigation</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="title_activity_home">HomeActivity</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_login">Sign in</string>
+
+    <!-- Strings related to login -->
+    <string name="title_login">Log In</string>
+    <string name="hint_username">&#160;Username</string>
+    <string name="hint_password">&#160;Password</string>
+    <string name="button_signIn">Sign In</string>
+    <string name="title_activity_view">ViewActivity</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+    <string name="title_activity_view_schedule">ViewScheduleActivity</string>
+
+    <!-- String related to schedules -->
+    <string name="title_view_schedule">View Schedule</string>
+    <string name="tab_all">All</string>
+    <string name="tab_upcoming">Upcoming</string>
+    <string name="tab_past">Past</string>
+</resources>
