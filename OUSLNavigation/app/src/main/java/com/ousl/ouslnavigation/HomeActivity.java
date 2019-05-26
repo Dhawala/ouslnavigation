@@ -1,8 +1,10 @@
 package com.ousl.ouslnavigation;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.inputmethodservice.Keyboard;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -20,6 +22,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.WindowManager;
+import android.view.animation.AlphaAnimation;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,6 +33,8 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.Volley;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -35,6 +43,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -53,25 +63,58 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class HomeActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnCameraChangeListener {
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnCameraChangeListener, View.OnClickListener {
 
-    private GoogleMap mMap;
+    //static final variables
+    private static final String TAG = "HomeActivity:";
+    private static final int ERROR_DIALOG_REQUEST = 9001;
+
     private FusedLocationProviderClient mFusedLocationProviderClient;
+    private AlphaAnimation buttonClick = new AlphaAnimation(1F, 0.8F);
 
+    //Activity widgets declaration
+    private GoogleMap mMap;
+    private Toolbar mToolbar;
+    private FloatingActionButton mFloatingActionButtonMessage;
+    private DrawerLayout mDrawer;
+    private NavigationView mNavigationView;
+    private AutoCompleteTextView mSearchTextTo;
+    private ImageButton mSearchButtonTo;
+
+    //variables
     private Boolean mLocationPermissionGranted = false;
+    private MarkerOptions mMarkerOptionsTo = null;
+    private Marker mMarkerTo = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        mFloatingActionButtonMessage = (FloatingActionButton) findViewById(R.id.fab);
+        mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mNavigationView = (NavigationView) findViewById(R.id.nav_view);
+        mSearchTextTo = (AutoCompleteTextView) findViewById(R.id.txt_search_to);
+        mSearchButtonTo = (ImageButton) findViewById(R.id.btn_next_search_to);
+
+        if(isServicesOK()){
+            init();
+        }
+
+    }
+
+    private void init(){
+        Log.d(TAG, "Initializing Activity...");
+
+        Log.d(TAG, "Initializing: setting activity fullscreen");
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        Log.d(TAG, "Initializing: hide mToolbar");
+        setSupportActionBar(mToolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        mFloatingActionButtonMessage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
@@ -79,17 +122,17 @@ public class HomeActivity extends AppCompatActivity
             }
         });
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        Log.d(TAG, "Initializing: action bar mDrawer is set to be not toggled");
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
+                this, mDrawer, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        mDrawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        View header = navigationView.getHeaderView(0);
+        Log.d(TAG, "Initializing: navigation view - set student loged in and photo");
+        View header = mNavigationView.getHeaderView(0);
         TextView navName = (TextView) header.findViewById(R.id.nav_name);
         TextView navEmail = (TextView) header.findViewById(R.id.nav_email);
-        navigationView.setNavigationItemSelectedListener(this);
+        mNavigationView.setNavigationItemSelectedListener(this);
 
         navName.setText(LoggedUser.getName());
         navEmail.setText(LoggedUser.getEmail());
@@ -100,19 +143,43 @@ public class HomeActivity extends AppCompatActivity
         mapFragment.getMapAsync(this);
         getLocationPermission();
         getLocations();
+
+        ArrayAdapter<String> locatonsAdaptor = new ArrayAdapter<String>(this,
+                R.layout.custom_list_item, R.id.text_view_list_item, MapUtil.locations);
+        mSearchTextTo.setAdapter(locatonsAdaptor);
+
+        mSearchButtonTo.setOnClickListener(this);
     }
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
+        if (mDrawer.isDrawerOpen(GravityCompat.START)) {
+            mDrawer.closeDrawer(GravityCompat.START);
         } else {
             finish();
         }
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public void onClick(View view) {
+        view.startAnimation(buttonClick);
+
+        if(view == mSearchButtonTo){
+            if(mMarkerOptionsTo == null){
+                setMarkerTo();
+            }
+            else{
+                try {
+                    mMarkerTo.remove();
+                    setMarkerTo();
+                }
+                catch (NullPointerException e){
+                    //do nothing
+                }
+            }
+        }
+    }
+
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
@@ -213,6 +280,28 @@ public class HomeActivity extends AppCompatActivity
         }
     }
 
+    //class methods
+    public boolean isServicesOK(){
+        Log.d(TAG, "isServiceOk: checking google services version");
+
+        int available = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(HomeActivity.this);
+
+        if(available == ConnectionResult.SUCCESS){
+            Log.d(TAG, "isServiceOK: Google Play Services are available");
+            return true;
+        }
+        else if(GoogleApiAvailability.getInstance().isUserResolvableError(available)){
+            Log.d(TAG, "isServiceOK: an error occurred, but it can be resolved");
+            Dialog dialog = GoogleApiAvailability.getInstance().getErrorDialog(HomeActivity.this, available, ERROR_DIALOG_REQUEST);
+            dialog.show();
+        }
+        else{
+            Log.d(TAG, "Map requests are disabled");
+            Toast.makeText(this, "Map Reqests are disabled.", Toast.LENGTH_SHORT);
+        }
+        return false;
+    }
+
     private void getLocationPermission(){
         String [] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
 
@@ -304,11 +393,11 @@ public class HomeActivity extends AppCompatActivity
                     boolean success = jsonResponse.getBoolean("success");
 
                     if(success){
-                        JSONArray buildings = jsonResponse.getJSONArray("locations");
+                        JSONArray location = jsonResponse.getJSONArray("locations");
                         JSONObject record;
 
-                        for(int i=0; i<buildings.length(); i++){
-                            record = buildings.getJSONObject(i);
+                        for(int i=0; i<location.length(); i++){
+                            record = location.getJSONObject(i);
                             MapUtil.locations.add(record.getString("loc_name"));
                             MapUtil.location_coordinates.put(record.getString("loc_name"), new LatLng(record.getDouble("longitude"), record.getDouble("latitude")));
                         }
@@ -406,4 +495,19 @@ public class HomeActivity extends AppCompatActivity
         queue.add(routeRequest);
 
     }
+
+    private void setMarkerTo(){
+        try {
+            LatLng latLng = MapUtil.location_coordinates.get(mSearchTextTo.getText().toString());
+            mMarkerOptionsTo = new MarkerOptions();
+            mMarkerOptionsTo.position(latLng);
+            mMarkerOptionsTo.title(mSearchTextTo.getText().toString());
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+            mMarkerTo = mMap.addMarker(mMarkerOptionsTo);
+        }
+        catch(IllegalArgumentException e){
+            Toast.makeText(this, "Invalid location", Toast.LENGTH_LONG).show();
+        }
+    }
+
 }

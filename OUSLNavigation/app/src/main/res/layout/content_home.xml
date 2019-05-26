@@ -28,14 +28,23 @@
             android:layout_marginRight="10dp"
             android:src="@drawable/ic_map_search"/>
 
-        <EditText
-            android:id="@+id/txt_search"
+        <AutoCompleteTextView
+            android:id="@+id/txt_search_to"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_toRightOf="@id/ic_search"
             android:textColor="#000000"
             android:background="@null"
             android:hint="Enter location"/>
+
+        <ImageButton
+            android:id="@+id/btn_next_search_to"
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:layout_alignRight="@id/txt_search_to"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_navigate_next"
+            android:background="@color/colorPrimary" />
 
     </RelativeLayout>
 </RelativeLayout>
