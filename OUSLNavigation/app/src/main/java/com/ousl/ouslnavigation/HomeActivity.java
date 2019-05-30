@@ -26,6 +26,7 @@ import android.view.animation.AlphaAnimation;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.ImageButton;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -62,6 +63,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.List;
+
 public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnCameraChangeListener, View.OnClickListener {
 
@@ -80,11 +83,15 @@ public class HomeActivity extends AppCompatActivity
     private NavigationView mNavigationView;
     private AutoCompleteTextView mSearchTextTo;
     private ImageButton mSearchButtonTo;
+    private AutoCompleteTextView mSearchTextFrom;
+    private ImageButton mSearchButtonFrom;
+    private RelativeLayout mSearchFromLayout;
 
     //variables
     private Boolean mLocationPermissionGranted = false;
-    private MarkerOptions mMarkerOptionsTo = null;
+    //private MarkerOptions mMarkerOptionsTo = null;
     private Marker mMarkerTo = null;
+    private Marker mMarkerFrom = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,6 +104,9 @@ public class HomeActivity extends AppCompatActivity
         mNavigationView = (NavigationView) findViewById(R.id.nav_view);
         mSearchTextTo = (AutoCompleteTextView) findViewById(R.id.txt_search_to);
         mSearchButtonTo = (ImageButton) findViewById(R.id.btn_next_search_to);
+        mSearchTextFrom = (AutoCompleteTextView) findViewById(R.id.txt_search_from);
+        mSearchButtonFrom = (ImageButton) findViewById(R.id.btn_next_search_from);
+        mSearchFromLayout = (RelativeLayout) findViewById(R.id.relLayout2);
 
         if(isServicesOK()){
             init();
@@ -147,8 +157,11 @@ public class HomeActivity extends AppCompatActivity
         ArrayAdapter<String> locatonsAdaptor = new ArrayAdapter<String>(this,
                 R.layout.custom_list_item, R.id.text_view_list_item, MapUtil.locations);
         mSearchTextTo.setAdapter(locatonsAdaptor);
-
         mSearchButtonTo.setOnClickListener(this);
+
+        mSearchFromLayout.setVisibility(View.INVISIBLE);
+        mSearchTextFrom.setAdapter(locatonsAdaptor);
+        mSearchButtonFrom.setOnClickListener(this);
     }
 
     @Override
@@ -163,20 +176,23 @@ public class HomeActivity extends AppCompatActivity
     @Override
     public void onClick(View view) {
         view.startAnimation(buttonClick);
+        String loc;
 
-        if(view == mSearchButtonTo){
-            if(mMarkerOptionsTo == null){
-                setMarkerTo();
+        if(view == mSearchButtonTo) {
+            loc = mSearchTextTo.getText().toString();
+            if(mMarkerTo == null){
+                mMarkerTo = mMap.addMarker(new MarkerOptions().position(new LatLng(0,0)).visible(false));
             }
-            else{
-                try {
-                    mMarkerTo.remove();
-                    setMarkerTo();
-                }
-                catch (NullPointerException e){
-                    //do nothing
-                }
+            setMarker(mMarkerTo, loc);
+            mSearchFromLayout.setVisibility(View.VISIBLE);
+        }
+        else if(view == mSearchButtonFrom){
+            loc = mSearchTextFrom.getText().toString();
+            if(mMarkerFrom == null){
+                mMarkerFrom = mMap.addMarker(new MarkerOptions().position(new LatLng(0,0)).visible(false));
             }
+            setMarker(mMarkerFrom, loc);
+            drawRoute(mMarkerFrom.getTitle(), mMarkerTo.getTitle());
         }
     }
 
@@ -461,8 +477,12 @@ public class HomeActivity extends AppCompatActivity
                             MapUtil.routes[no_from][no_to] = coordinates;
                             MapUtil.routes[no_to][no_from] = coordinates;
 
-                            ShortestPath.nodes.add(no_from, new Vertex(loc_from.toString()));
-                            ShortestPath.nodes.add(no_to, new Vertex(loc_to.toString()));
+                            if(ShortestPath.nodes.get(no_from) == null) {
+                                ShortestPath.nodes.add(no_from, new Vertex(loc_from.toString()));
+                            }
+                            if(ShortestPath.nodes.get(no_to) == null) {
+                                ShortestPath.nodes.add(no_to, new Vertex(loc_to.toString()));
+                            }
 
                             ShortestPath.nodes.get(no_from).adjacencies.add(new Edge(ShortestPath.nodes.get(no_to), weight));
                             ShortestPath.nodes.get(no_to).adjacencies.add(new Edge(ShortestPath.nodes.get(no_from), weight));
@@ -496,14 +516,33 @@ public class HomeActivity extends AppCompatActivity
 
     }
 
-    private void setMarkerTo(){
+    private void drawRoute(String from, String to){
+        System.out.println(from);
+        System.out.println(to);
+        int no = MapUtil.location_numbers.get(from);
+        to = "Junction 1";
+        ShortestPath.computePaths(ShortestPath.nodes.get(MapUtil.location_numbers.get(from)));
+        List<Vertex> path = ShortestPath.getShortestPathTo(ShortestPath.nodes.get(MapUtil.location_numbers.get(to)));
+
+//        int no1 = MapUtil.location_numbers.get(path.get(0).toString());
+//        mMap.addPolyline(new MapUtil().createPolyline(MapUtil.routes[no][no1], 9, "#FF0000"));
+        System.out.println(no);
+        System.out.println(path);
+        System.out.println(path.get(0));
+        System.out.println(MapUtil.location_numbers.get(path.get(0).toString()));
+        for(int i=0; i<path.size(); i++){
+            //String c = MapUtil.routes[i][i+1];
+           // mMap.addPolyline(new MapUtil().createPolyline(c, 9, "#FF0000"));
+        }
+    }
+
+    private void setMarker(Marker m, String loc){
         try {
-            LatLng latLng = MapUtil.location_coordinates.get(mSearchTextTo.getText().toString());
-            mMarkerOptionsTo = new MarkerOptions();
-            mMarkerOptionsTo.position(latLng);
-            mMarkerOptionsTo.title(mSearchTextTo.getText().toString());
+            LatLng latLng = MapUtil.location_coordinates.get(loc);
+            m.setPosition(latLng);
+            m.setTitle(loc);
             mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-            mMarkerTo = mMap.addMarker(mMarkerOptionsTo);
+            m.setVisible(true);
         }
         catch(IllegalArgumentException e){
             Toast.makeText(this, "Invalid location", Toast.LENGTH_LONG).show();
