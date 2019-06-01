@@ -35,7 +35,7 @@
             android:layout_toRightOf="@id/ic_search"
             android:textColor="#000000"
             android:background="@null"
-            android:hint="Navigate From Location"/>
+            android:hint="Enter Location"/>
 
         <ImageButton
             android:id="@+id/btn_next_search_to"
@@ -45,7 +45,6 @@
             android:layout_centerVertical="true"
             android:src="@drawable/ic_navigate_next"
             android:background="@color/colorPrimary" />
-
     </RelativeLayout>
 
     <RelativeLayout
@@ -74,7 +73,7 @@
             android:layout_toRightOf="@id/ic_search2"
             android:textColor="#000000"
             android:background="@null"
-            android:hint="Enter location"/>
+            android:hint="Navigate to"/>
 
         <ImageButton
             android:id="@+id/btn_next_search_from"
@@ -84,6 +83,25 @@
             android:layout_centerVertical="true"
             android:src="@drawable/ic_navigate_next"
             android:background="@color/colorPrimary" />
-
     </RelativeLayout>
+    
+    <ImageView
+        android:id="@+id/img_current_location"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_below="@id/relLayout2"
+        android:layout_marginTop="40dp"
+        android:layout_marginRight="10dp"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/ic_gps"/>
+
+    <ImageView
+        android:id="@+id/img_uni_location"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_below="@id/img_current_location"
+        android:layout_marginTop="30dp"
+        android:layout_marginRight="10dp"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/ic_uni_gps"/>
 </RelativeLayout>

@@ -2,9 +2,9 @@ package com.ousl.ouslnavigation;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.inputmethodservice.Keyboard;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -23,9 +23,11 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -66,7 +68,8 @@ import org.json.JSONObject;
 import java.util.List;
 
 public class HomeActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnCameraChangeListener, View.OnClickListener {
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,
+            GoogleMap.OnCameraChangeListener, View.OnClickListener {
 
     //static final variables
     private static final String TAG = "HomeActivity:";
@@ -86,10 +89,12 @@ public class HomeActivity extends AppCompatActivity
     private AutoCompleteTextView mSearchTextFrom;
     private ImageButton mSearchButtonFrom;
     private RelativeLayout mSearchFromLayout;
+    private ImageView mCurrentLocationGpsImage;
+    private ImageView mUniLocationGpsImage;
 
     //variables
     private Boolean mLocationPermissionGranted = false;
-    //private MarkerOptions mMarkerOptionsTo = null;
+    private LatLng openUni;
     private Marker mMarkerTo = null;
     private Marker mMarkerFrom = null;
 
@@ -97,6 +102,8 @@ public class HomeActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        openUni = new LatLng(6.883810, 79.884354);
 
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         mFloatingActionButtonMessage = (FloatingActionButton) findViewById(R.id.fab);
@@ -107,6 +114,8 @@ public class HomeActivity extends AppCompatActivity
         mSearchTextFrom = (AutoCompleteTextView) findViewById(R.id.txt_search_from);
         mSearchButtonFrom = (ImageButton) findViewById(R.id.btn_next_search_from);
         mSearchFromLayout = (RelativeLayout) findViewById(R.id.relLayout2);
+        mCurrentLocationGpsImage = (ImageView) findViewById(R.id.img_current_location);
+        mUniLocationGpsImage = (ImageView) findViewById(R.id.img_uni_location);
 
         if(isServicesOK()){
             init();
@@ -162,6 +171,11 @@ public class HomeActivity extends AppCompatActivity
         mSearchFromLayout.setVisibility(View.INVISIBLE);
         mSearchTextFrom.setAdapter(locatonsAdaptor);
         mSearchButtonFrom.setOnClickListener(this);
+
+        mCurrentLocationGpsImage.setOnClickListener(this);
+        mUniLocationGpsImage.setOnClickListener(this);
+
+        HideSoftKeyboard(mSearchFromLayout);
     }
 
     @Override
@@ -185,6 +199,7 @@ public class HomeActivity extends AppCompatActivity
             }
             setMarker(mMarkerTo, loc);
             mSearchFromLayout.setVisibility(View.VISIBLE);
+            HideSoftKeyboard(mSearchTextTo);
         }
         else if(view == mSearchButtonFrom){
             loc = mSearchTextFrom.getText().toString();
@@ -193,6 +208,13 @@ public class HomeActivity extends AppCompatActivity
             }
             setMarker(mMarkerFrom, loc);
             drawRoute(mMarkerFrom.getTitle(), mMarkerTo.getTitle());
+            HideSoftKeyboard(mSearchTextFrom);
+        }
+        else if(view == mCurrentLocationGpsImage){
+            moveCameraToCurrentLoaction();
+        }
+        else if(view == mUniLocationGpsImage){
+            moveCameraToUniversity();
         }
     }
 
@@ -238,7 +260,6 @@ public class HomeActivity extends AppCompatActivity
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        LatLng openUni = new LatLng(6.883810, 79.884354);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(openUni, 18));
         mMap.setOnCameraChangeListener(this);
 
@@ -343,7 +364,6 @@ public class HomeActivity extends AppCompatActivity
                     public void onComplete(@NonNull Task task) {
                         if(task.isSuccessful()){
                             Location currentLocation = (Location) task.getResult();
-
                         }
                     }
                 });
@@ -354,8 +374,33 @@ public class HomeActivity extends AppCompatActivity
         }
     }
 
-    private void moveCamera(LatLng latLng, float zoom){
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
+    private void moveCameraToCurrentLoaction(){
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        try{
+            if(mLocationPermissionGranted){
+                Task location = mFusedLocationProviderClient.getLastLocation();
+                location.addOnCompleteListener(new OnCompleteListener() {
+                    @Override
+                    public void onComplete(@NonNull Task task) {
+                        if(task.isSuccessful()){
+                            Location currentLocation = (Location) task.getResult();
+                            moveCamera(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
+                        }
+                    }
+                });
+            }
+        }
+        catch (SecurityException e){
+            Log.e(this.getClass().getSimpleName(), "Security Error: "+e.getMessage());
+        }
+    }
+
+    private void moveCameraToUniversity(){
+        moveCamera(openUni);
+    }
+
+    private void moveCamera(LatLng latLng){
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 18));
     }
 
     private void drawBuildings(){
@@ -477,10 +522,21 @@ public class HomeActivity extends AppCompatActivity
                             MapUtil.routes[no_from][no_to] = coordinates;
                             MapUtil.routes[no_to][no_from] = coordinates;
 
-                            if(ShortestPath.nodes.get(no_from) == null) {
+                            try {
+                                if (ShortestPath.nodes.get(no_from) == null) {
+                                    ShortestPath.nodes.add(no_from, new Vertex(loc_from.toString()));
+                                }
+                            }
+                            catch(IndexOutOfBoundsException e){
                                 ShortestPath.nodes.add(no_from, new Vertex(loc_from.toString()));
                             }
-                            if(ShortestPath.nodes.get(no_to) == null) {
+
+                            try {
+                                if (ShortestPath.nodes.get(no_to) == null) {
+                                    ShortestPath.nodes.add(no_to, new Vertex(loc_to.toString()));
+                                }
+                            }
+                            catch(IndexOutOfBoundsException e){
                                 ShortestPath.nodes.add(no_to, new Vertex(loc_to.toString()));
                             }
 
@@ -517,22 +573,12 @@ public class HomeActivity extends AppCompatActivity
     }
 
     private void drawRoute(String from, String to){
-        System.out.println(from);
-        System.out.println(to);
-        int no = MapUtil.location_numbers.get(from);
-        to = "Junction 1";
         ShortestPath.computePaths(ShortestPath.nodes.get(MapUtil.location_numbers.get(from)));
         List<Vertex> path = ShortestPath.getShortestPathTo(ShortestPath.nodes.get(MapUtil.location_numbers.get(to)));
 
-//        int no1 = MapUtil.location_numbers.get(path.get(0).toString());
-//        mMap.addPolyline(new MapUtil().createPolyline(MapUtil.routes[no][no1], 9, "#FF0000"));
-        System.out.println(no);
-        System.out.println(path);
-        System.out.println(path.get(0));
-        System.out.println(MapUtil.location_numbers.get(path.get(0).toString()));
-        for(int i=0; i<path.size(); i++){
-            //String c = MapUtil.routes[i][i+1];
-           // mMap.addPolyline(new MapUtil().createPolyline(c, 9, "#FF0000"));
+        for(int i=0; i<path.size()-1; i++){
+            String c = MapUtil.routes[i][i+1];
+            mMap.addPolyline(new MapUtil().createPolyline(c, 9, "#FF0000"));
         }
     }
 
@@ -549,4 +595,9 @@ public class HomeActivity extends AppCompatActivity
         }
     }
 
+    private void HideSoftKeyboard(View mainLayout){
+        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(mainLayout.getWindowToken(), 0);
+        ;
+    }
 }
