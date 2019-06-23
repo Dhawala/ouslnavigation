@@ -210,6 +210,33 @@ public class HomeActivity extends AppCompatActivity
     }
 
     @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+
+        if (id == R.id.nav_view) {
+                Intent intent=new Intent(HomeActivity.this, ViewScheduleActivity.class);
+                startActivity(intent);
+
+        } else if (id == R.id.nav_upcoming) {
+                Intent intent=new Intent(HomeActivity.this, UpcomingScheduleActivity.class);
+                startActivity(intent);
+        } else if (id == R.id.nav_announcements) {
+
+        } else if (id == R.id.nav_settings) {
+
+        } else if (id == R.id.nav_aboutus) {
+
+        } else if (id == R.id.nav_help) {
+
+        }
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
+    @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 

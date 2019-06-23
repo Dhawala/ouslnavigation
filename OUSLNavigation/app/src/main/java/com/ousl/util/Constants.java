@@ -1,6 +1,7 @@
 package com.ousl.util;
 
 public class Constants {
+
     private static final String ROOT_URL = "http://192.168.1.10:8081/ouslnavigationapi/v1/";
 
     public static final String URL_LOGIN_API = ROOT_URL+"login-api.php";
