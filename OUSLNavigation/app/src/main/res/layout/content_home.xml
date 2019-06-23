@@ -5,103 +5,81 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context=".HomeActivity"
-    tools:showIn="@layout/app_bar_home">
+    tools:context=".HomeActivity">
 
     <include layout="@layout/activity_maps" />
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginLeft="10dp"
-        android:background="#ffffff"
-        android:id="@+id/relLayout">
+    <ImageButton
+        android:id="@+id/ibtn_menu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="5dp"
+        android:background="@drawable/map_buttons"
+        android:src="@drawable/ic_menu"/>
 
-        <ImageView
-            android:id="@+id/ic_search"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_centerVertical="true"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:src="@drawable/ic_map_search"/>
-
-        <AutoCompleteTextView
-            android:id="@+id/txt_search_to"
+        <RelativeLayout
+            android:id="@+id/layout_search"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_toRightOf="@id/ic_search"
-            android:textColor="#000000"
-            android:background="@null"
-            android:hint="Enter Location"/>
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:layout_marginTop="50dp"
+            android:background="@drawable/nav_search_textfield"
+            android:orientation="vertical"
+            android:paddingTop="5dp">
 
-        <ImageButton
-            android:id="@+id/btn_next_search_to"
-            android:layout_width="50dp"
-            android:layout_height="match_parent"
-            android:layout_alignRight="@id/txt_search_to"
-            android:layout_centerVertical="true"
-            android:src="@drawable/ic_navigate_next"
-            android:background="@color/colorPrimary" />
-    </RelativeLayout>
+            <TextView
+                android:id="@+id/from"
+                android:layout_width="60dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:layout_marginLeft="8dp"
+                android:text="FROM :"
+                android:textColor="#3c50c1"
+                android:textStyle="bold"
+                android:labelFor="@id/txt_search_from"/>
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginLeft="10dp"
-        android:background="#ffffff"
-        android:id="@+id/relLayout2"
-        android:layout_below="@id/relLayout">
+            <AutoCompleteTextView
+                android:id="@+id/txt_search_from"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Where are you at?"
+                android:textColor="#000000"
+                android:textStyle="bold"
+                android:layout_toRightOf="@id/from"
+                android:text="Main Gate - Nawala"/>
 
-        <ImageView
-            android:id="@+id/ic_search2"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_centerVertical="true"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:src="@drawable/ic_map_search"/>
+            <TextView
+                android:id="@+id/to"
+                android:layout_width="60dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="23dp"
+                android:layout_marginLeft="8dp"
+                android:text="TO :"
+                android:textColor="#3c50c1"
+                android:textStyle="bold"
+                android:labelFor="@id/txt_search_to"
+                android:layout_below="@id/from"/>
 
-        <AutoCompleteTextView
-            android:id="@+id/txt_search_from"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_toRightOf="@id/ic_search2"
-            android:textColor="#000000"
-            android:background="@null"
-            android:hint="Navigate to"/>
+            <AutoCompleteTextView
+                android:id="@+id/txt_search_to"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@id/to"
+                android:layout_below="@id/txt_search_from"
+                android:hint="Where do you want to navigate?"
+                android:textColor="#000000"
+                android:textStyle="bold" />
 
-        <ImageButton
-            android:id="@+id/btn_next_search_from"
-            android:layout_width="50dp"
-            android:layout_height="match_parent"
-            android:layout_alignRight="@id/txt_search_from"
-            android:layout_centerVertical="true"
-            android:src="@drawable/ic_navigate_next"
-            android:background="@color/colorPrimary" />
-    </RelativeLayout>
-    
-    <ImageView
-        android:id="@+id/img_current_location"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_below="@id/relLayout2"
-        android:layout_marginTop="40dp"
-        android:layout_marginRight="10dp"
-        android:layout_alignParentRight="true"
-        android:src="@drawable/ic_gps"/>
+            <Button
+                android:id="@+id/btn_navigate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/to"
+                android:layout_margin="10dp"
+                android:background="@drawable/login_signin_button"
+                android:text="NAVIGATE"/>
 
-    <ImageView
-        android:id="@+id/img_uni_location"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_below="@id/img_current_location"
-        android:layout_marginTop="30dp"
-        android:layout_marginRight="10dp"
-        android:layout_alignParentRight="true"
-        android:src="@drawable/ic_uni_gps"/>
+        </RelativeLayout>
 </RelativeLayout>

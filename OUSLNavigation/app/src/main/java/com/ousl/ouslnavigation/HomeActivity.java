@@ -8,8 +8,6 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -19,15 +17,14 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -49,101 +46,97 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.ousl.SessionManagement.LoginSession;
 import com.ousl.dbo.BuildingRequest;
 import com.ousl.dbo.LocationRequest;
 import com.ousl.dbo.RouteRequest;
 import com.ousl.util.Constants;
-import com.ousl.util.Edge;
-import com.ousl.util.LoggedUser;
+import com.ousl.util.Graph.Edge;
 import com.ousl.util.MapUtil;
-import com.ousl.util.ShortestPath;
-import com.ousl.util.Vertex;
+import com.ousl.util.Graph.ShortestPath;
+import com.ousl.util.Graph.Vertex;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,
-            GoogleMap.OnCameraChangeListener, View.OnClickListener {
+            GoogleMap.OnCameraChangeListener, View.OnClickListener, GoogleMap.OnMarkerClickListener {
 
     //static final variables
     private static final String TAG = "HomeActivity:";
     private static final int ERROR_DIALOG_REQUEST = 9001;
 
+    private LoginSession session;
     private FusedLocationProviderClient mFusedLocationProviderClient;
-    private AlphaAnimation buttonClick = new AlphaAnimation(1F, 0.8F);
+    private AlphaAnimation buttonClick;
 
     //Activity widgets declaration
     private GoogleMap mMap;
-    private Toolbar mToolbar;
-    private FloatingActionButton mFloatingActionButtonMessage;
+    private RelativeLayout mSearchLayout;
     private DrawerLayout mDrawer;
     private NavigationView mNavigationView;
-    private AutoCompleteTextView mSearchTextTo;
-    private ImageButton mSearchButtonTo;
-    private AutoCompleteTextView mSearchTextFrom;
-    private ImageButton mSearchButtonFrom;
-    private RelativeLayout mSearchFromLayout;
-    private ImageView mCurrentLocationGpsImage;
-    private ImageView mUniLocationGpsImage;
+    private AutoCompleteTextView mSearchTextTo, mSearchTextFrom;
+    private Button mBtnNavigation;
+    private ImageButton mIBtnMenu;
 
     //variables
     private Boolean mLocationPermissionGranted = false;
     private LatLng openUni;
     private Marker mMarkerTo = null;
-    private Marker mMarkerFrom = null;
+    private ArrayList<Polyline> mPolylineRoute;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
+        session = new LoginSession(getApplicationContext());
+
         openUni = new LatLng(6.883810, 79.884354);
 
-        mToolbar = (Toolbar) findViewById(R.id.toolbar);
-        mFloatingActionButtonMessage = (FloatingActionButton) findViewById(R.id.fab);
+        buttonClick = new AlphaAnimation(1F, 0.5F);
+        buttonClick.setDuration(500);
+
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mSearchLayout = (RelativeLayout) findViewById(R.id.layout_search);
         mNavigationView = (NavigationView) findViewById(R.id.nav_view);
         mSearchTextTo = (AutoCompleteTextView) findViewById(R.id.txt_search_to);
-        mSearchButtonTo = (ImageButton) findViewById(R.id.btn_next_search_to);
         mSearchTextFrom = (AutoCompleteTextView) findViewById(R.id.txt_search_from);
-        mSearchButtonFrom = (ImageButton) findViewById(R.id.btn_next_search_from);
-        mSearchFromLayout = (RelativeLayout) findViewById(R.id.relLayout2);
-        mCurrentLocationGpsImage = (ImageView) findViewById(R.id.img_current_location);
-        mUniLocationGpsImage = (ImageView) findViewById(R.id.img_uni_location);
+        mBtnNavigation = (Button) findViewById(R.id.btn_navigate);
+        mIBtnMenu = (ImageButton) findViewById(R.id.ibtn_menu);
+
+        mPolylineRoute = new ArrayList<>();
+
+        session.checkLogin();
 
         if(isServicesOK()){
             init();
         }
-
     }
 
     private void init(){
         Log.d(TAG, "Initializing Activity...");
 
+        MapUtil.location_numbers.clear();
+        MapUtil.location_coordinates.clear();
+        MapUtil.routes = null;
+        MapUtil.locations.clear();
+        MapUtil.buildings.clear();
+
         Log.d(TAG, "Initializing: setting activity fullscreen");
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        Log.d(TAG, "Initializing: hide mToolbar");
-        setSupportActionBar(mToolbar);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
-
-        mFloatingActionButtonMessage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
         Log.d(TAG, "Initializing: action bar mDrawer is set to be not toggled");
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, mDrawer, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                this, mDrawer, null, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         mDrawer.addDrawerListener(toggle);
         toggle.syncState();
 
@@ -153,9 +146,6 @@ public class HomeActivity extends AppCompatActivity
         TextView navEmail = (TextView) header.findViewById(R.id.nav_email);
         mNavigationView.setNavigationItemSelectedListener(this);
 
-        navName.setText(LoggedUser.getName());
-        navEmail.setText(LoggedUser.getEmail());
-
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -163,19 +153,18 @@ public class HomeActivity extends AppCompatActivity
         getLocationPermission();
         getLocations();
 
-        ArrayAdapter<String> locatonsAdaptor = new ArrayAdapter<String>(this,
+        ArrayAdapter<String> locatonsAdaptor = null;
+        locatonsAdaptor = new ArrayAdapter<String>(this,
                 R.layout.custom_list_item, R.id.text_view_list_item, MapUtil.locations);
-        mSearchTextTo.setAdapter(locatonsAdaptor);
-        mSearchButtonTo.setOnClickListener(this);
 
-        mSearchFromLayout.setVisibility(View.INVISIBLE);
         mSearchTextFrom.setAdapter(locatonsAdaptor);
-        mSearchButtonFrom.setOnClickListener(this);
+        mSearchTextTo.setAdapter(locatonsAdaptor);
 
-        mCurrentLocationGpsImage.setOnClickListener(this);
-        mUniLocationGpsImage.setOnClickListener(this);
+        mBtnNavigation.setOnClickListener(this);
 
-        HideSoftKeyboard(mSearchFromLayout);
+        mIBtnMenu.setOnClickListener(this);
+
+        HideSoftKeyboard(mSearchTextFrom);
     }
 
     @Override
@@ -190,70 +179,34 @@ public class HomeActivity extends AppCompatActivity
     @Override
     public void onClick(View view) {
         view.startAnimation(buttonClick);
-        String loc;
 
-        if(view == mSearchButtonTo) {
-            loc = mSearchTextTo.getText().toString();
-            if(mMarkerTo == null){
-                mMarkerTo = mMap.addMarker(new MarkerOptions().position(new LatLng(0,0)).visible(false));
+        if(view == mBtnNavigation) {
+            try {
+                String locTo = mSearchTextTo.getText().toString();
+                String locFrom = mSearchTextFrom.getText().toString();
+                if (mMarkerTo == null) {
+                    mMarkerTo = mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).visible(false));
+                }
+                setMarker(mMarkerTo, locTo);
+                mMarkerTo.setVisible(true);
+                drawRoute(locFrom, locTo);
+                HideSoftKeyboard(mSearchTextTo);
             }
-            setMarker(mMarkerTo, loc);
-            mSearchFromLayout.setVisibility(View.VISIBLE);
-            HideSoftKeyboard(mSearchTextTo);
-        }
-        else if(view == mSearchButtonFrom){
-            loc = mSearchTextFrom.getText().toString();
-            if(mMarkerFrom == null){
-                mMarkerFrom = mMap.addMarker(new MarkerOptions().position(new LatLng(0,0)).visible(false));
+            catch(NullPointerException e){
+                //do nothing
             }
-            setMarker(mMarkerFrom, loc);
-            drawRoute(mMarkerFrom.getTitle(), mMarkerTo.getTitle());
-            HideSoftKeyboard(mSearchTextFrom);
         }
-        else if(view == mCurrentLocationGpsImage){
-            moveCameraToCurrentLoaction();
-        }
-        else if(view == mUniLocationGpsImage){
-            moveCameraToUniversity();
+        else if(view == mIBtnMenu){
+            mDrawer.openDrawer(mNavigationView);
         }
     }
 
     @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-
-        if (id == R.id.nav_view) {
-            if(LoggedUser.getUserLogged()){
-                Intent intent=new Intent(HomeActivity.this, ViewScheduleActivity.class);
-                startActivity(intent);
-            }
-            else{
-                Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
-                startActivity(intent);
-            }
-        } else if (id == R.id.nav_upcoming) {
-            if(LoggedUser.getUserLogged()){
-                Intent intent=new Intent(HomeActivity.this, UpcomingScheduleActivity.class);
-                startActivity(intent);
-            }
-            else{
-                Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
-                startActivity(intent);
-            }
-        } else if (id == R.id.nav_announcements) {
-
-        } else if (id == R.id.nav_settings) {
-
-        } else if (id == R.id.nav_aboutus) {
-
-        } else if (id == R.id.nav_help) {
+    public boolean onMarkerClick(Marker marker) {
+        if(marker.equals(mMarkerTo)){
 
         }
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
+        return false;
     }
 
     @Override
@@ -262,9 +215,10 @@ public class HomeActivity extends AppCompatActivity
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(openUni, 18));
         mMap.setOnCameraChangeListener(this);
+        mMap.setOnMarkerClickListener(this);
 
         if(mLocationPermissionGranted){
-            getDeviceLoaction();
+            getDeviceLocation();
 
             if(ContextCompat.checkSelfPermission(this.getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
                     != PackageManager.PERMISSION_GRANTED &&
@@ -354,7 +308,7 @@ public class HomeActivity extends AppCompatActivity
         }
     }
 
-    private void getDeviceLoaction(){
+    private void getDeviceLocation(){
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         try{
             if(mLocationPermissionGranted){
@@ -374,7 +328,7 @@ public class HomeActivity extends AppCompatActivity
         }
     }
 
-    private void moveCameraToCurrentLoaction(){
+    private void moveCameraToCurrentLocation(){
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         try{
             if(mLocationPermissionGranted){
@@ -573,11 +527,21 @@ public class HomeActivity extends AppCompatActivity
     }
 
     private void drawRoute(String from, String to){
+
+        for(Polyline route: mPolylineRoute){
+            route.remove();
+            mPolylineRoute.remove(route);
+        }
+
         ShortestPath.computePaths(ShortestPath.nodes.get(MapUtil.location_numbers.get(from)));
         List<Vertex> path = ShortestPath.getShortestPathTo(ShortestPath.nodes.get(MapUtil.location_numbers.get(to)));
 
+        System.out.println(path.toString());
+
         for(int i=0; i<path.size()-1; i++){
-            String c = MapUtil.routes[i][i+1];
+            int x = MapUtil.location_numbers.get(path.get(i).toString());
+            int y = MapUtil.location_numbers.get(path.get(i+1).toString());
+            String c = MapUtil.routes[x][y];
             mMap.addPolyline(new MapUtil().createPolyline(c, 9, "#FF0000"));
         }
     }
@@ -588,7 +552,6 @@ public class HomeActivity extends AppCompatActivity
             m.setPosition(latLng);
             m.setTitle(loc);
             mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-            m.setVisible(true);
         }
         catch(IllegalArgumentException e){
             Toast.makeText(this, "Invalid location", Toast.LENGTH_LONG).show();
@@ -598,6 +561,6 @@ public class HomeActivity extends AppCompatActivity
     private void HideSoftKeyboard(View mainLayout){
         InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(mainLayout.getWindowToken(), 0);
-        ;
     }
+
 }

@@ -1,4 +1,4 @@
-package com.ousl.util;
+package com.ousl.util.Graph;
 
 import java.util.ArrayList;
 

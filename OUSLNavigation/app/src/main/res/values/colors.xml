@@ -4,4 +4,7 @@
     <color name="colorPrimaryDark">#FF8800</color>
     <color name="colorAccent">#FF8800</color>
     <color name="loginSignInButton">#FF2900</color>
+    <color name="navHeaderCenter">#FF3300</color>
+    <color name="navHeaderStart">#FF8000</color>
+    <color name="navHeaderEnd">#FFA64D</color>
 </resources>

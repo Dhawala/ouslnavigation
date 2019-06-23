@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -14,47 +15,51 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.Volley;
+import com.ousl.SessionManagement.LoginSession;
 import com.ousl.dbo.LoginRequest;
-import com.ousl.util.LoggedUser;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
-    EditText txtUsername, txtPassword;
-    Button btnSignIn;
-    ProgressDialog progressDialog;
+    private final static String TAG = "LoginActivity";
+
+    private LoginSession session;
+
+    private EditText txtUsername, txtPassword;
+    private Button btnSignIn;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        getSupportActionBar().setTitle("Log In");
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        session = new LoginSession(getApplicationContext());
 
         txtUsername = (EditText) findViewById(R.id.username);
         txtPassword = (EditText) findViewById(R.id.password);
         btnSignIn = (Button) findViewById(R.id.signin);
 
         progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Please wait...");
 
         btnSignIn.setOnClickListener(this);
+
+        init();
+    }
+
+    public void init(){
+        Log.d(TAG, "Initializing login activity");
+
+        Log.d(TAG, "Initalizing: setting login activity fullscreen");
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        progressDialog.setMessage("Signing In...");
     }
 
     @Override
     public void onBackPressed() {
         finish();
-    }
-
-    @Override
-    public boolean onSupportNavigateUp() {
-        onBackPressed();
-        return true;
     }
 
     @Override
@@ -81,24 +86,16 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     if(success){
                         String sno = jsonResponse.getString("sno");
                         String pass = jsonResponse.getString("password");
-                        int regno = jsonResponse.getInt("regno");
-                        String nic = jsonResponse.getString("nic");
                         String name = jsonResponse.getString("name");
                         String email = jsonResponse.getString("email");
                         int contact = jsonResponse.getInt("contact");
 
                         if(username.equals(sno) && password.equals(pass)){
-                            LoggedUser.setUserLogged(true);
-                            LoggedUser.setSNo(sno);
-                            LoggedUser.setRegNo(regno);
-                            LoggedUser.setNIC(nic);
-                            LoggedUser.setName(name);
-                            LoggedUser.setEmail(email);
-                            LoggedUser.setContact(contact);
+                            session.createLoginSession(sno, name, email, contact);
                             Toast.makeText(getApplicationContext(), "Login successful.", Toast.LENGTH_LONG).show();
 
-                            Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-                            startActivity(intent);
+                            Intent i = new Intent(getApplicationContext(), HomeActivity.class);
+                            startActivity(i);
                         }
                         else{
                             Toast.makeText(getApplicationContext(), "Invalid Username or Password!", Toast.LENGTH_LONG).show();

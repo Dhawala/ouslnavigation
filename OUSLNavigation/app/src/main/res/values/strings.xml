@@ -4,7 +4,7 @@
     <string name="title_activity_home">HomeActivity</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_desc">Navigation header</string>
+    <string name="profile_pic">Profile Picture</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_login">Sign in</string>
 
@@ -14,12 +14,18 @@
     <string name="hint_password">&#160;Password</string>
     <string name="button_signIn">Sign In</string>
     <string name="title_activity_view">ViewActivity</string>
-    <string name="section_format">Hello World from section: %1$d</string>
-    <string name="title_activity_view_schedule">ViewScheduleActivity</string>
 
     <!-- String related to schedules -->
     <string name="title_view_schedule">View Schedule</string>
     <string name="tab_all">All</string>
     <string name="tab_upcoming">Upcoming</string>
     <string name="tab_past">Past</string>
+
+    <!-- String related to about us -->
+    <string name="about_application"> "OUSL Route Navigation Mobile App" is a Navigation and Schedules of OUSL integrated to serve the
+        students with providing a efficient way around the university while checking on where activity schedules are held. This application
+        is a final year project carried out by students of OUSL.
+    </string>
+    <string name="about_team_title"> Project Team </string>
+
 </resources>
