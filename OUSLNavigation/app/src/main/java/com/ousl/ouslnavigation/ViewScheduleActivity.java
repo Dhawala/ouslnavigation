@@ -33,7 +33,6 @@ public class ViewScheduleActivity extends AppCompatActivity implements View.OnCl
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         getSupportActionBar().setTitle("View Schedule");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);

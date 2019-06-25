@@ -7,19 +7,19 @@ import com.ousl.util.Constants;
 import java.util.HashMap;
 import java.util.Map;
 
-public class LoginRequest extends StringRequest {
+public class RoomDetailsRequest extends StringRequest {
 
     private Map<String, String> params;
 
-    public LoginRequest(String username, String password, Response.Listener<String> responseListner, Response.ErrorListener errorListner){
-        super(Method.POST, Constants.URL_LOGIN_API, responseListner, errorListner);
+    public RoomDetailsRequest(String room, Response.Listener<String> responseListner, Response.ErrorListener errorListner){
+        super(Method.POST, Constants.URL_ROOMDETAILS_API, responseListner, errorListner);
         params = new HashMap<>();
-        params.put("username", username);
-        params.put("password", password);
+        params.put("room", room);
     }
 
     @Override
     public Map<String, String> getParams() {
         return params;
     }
+
 }

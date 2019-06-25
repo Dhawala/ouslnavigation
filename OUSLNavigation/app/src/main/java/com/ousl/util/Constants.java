@@ -10,6 +10,8 @@ public class Constants {
     public static final String URL_LOCATIONS_API = ROOT_URL+"locations-api.php";
     public static final String URL_BUILDINGS_API = ROOT_URL+"buildings-api.php";
     public static final String URL_ROUTES_API = ROOT_URL+"routes-api.php";
+    public static final String URL_ROOMS_API = ROOT_URL+"rooms-api.php";
+    public static final String URL_ROOMDETAILS_API = ROOT_URL+"roomdetails-api.php";
 
     public static final String UNI_COORDINATES = "6.888690,79.878941:6.888746,79.879303:6.888758,79.879605:6.888733,79.879906:" +
             "6.888562,79.880886:6.888489,79.881130:6.888356,79.881431:6.887902,79.882199:6.887780,79.882336:6.887176,79.882824:" +

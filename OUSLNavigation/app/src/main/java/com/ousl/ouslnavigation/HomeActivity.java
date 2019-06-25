@@ -85,7 +85,7 @@ public class HomeActivity extends AppCompatActivity
     private NavigationView mNavigationView;
     private AutoCompleteTextView mSearchTextTo, mSearchTextFrom;
     private Button mBtnNavigation;
-    private ImageButton mIBtnMenu;
+    private ImageButton mIBtnMenu, mIBtnCurLoc, mIBtnUniLoc;
 
     //variables
     private Boolean mLocationPermissionGranted = false;
@@ -102,7 +102,7 @@ public class HomeActivity extends AppCompatActivity
 
         openUni = new LatLng(6.883810, 79.884354);
 
-        buttonClick = new AlphaAnimation(1F, 0.5F);
+        buttonClick = new AlphaAnimation(1F, 0.8F);
         buttonClick.setDuration(500);
 
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -112,6 +112,8 @@ public class HomeActivity extends AppCompatActivity
         mSearchTextFrom = (AutoCompleteTextView) findViewById(R.id.txt_search_from);
         mBtnNavigation = (Button) findViewById(R.id.btn_navigate);
         mIBtnMenu = (ImageButton) findViewById(R.id.ibtn_menu);
+        mIBtnCurLoc = (ImageButton) findViewById(R.id.ibtn_curloc);
+        mIBtnUniLoc = (ImageButton) findViewById(R.id.ibtn_uniloc);
 
         mPolylineRoute = new ArrayList<>();
 
@@ -163,6 +165,8 @@ public class HomeActivity extends AppCompatActivity
         mBtnNavigation.setOnClickListener(this);
 
         mIBtnMenu.setOnClickListener(this);
+        mIBtnCurLoc.setOnClickListener(this);
+        mIBtnUniLoc.setOnClickListener(this);
 
         HideSoftKeyboard(mSearchTextFrom);
     }
@@ -189,6 +193,7 @@ public class HomeActivity extends AppCompatActivity
                 }
                 setMarker(mMarkerTo, locTo);
                 mMarkerTo.setVisible(true);
+                mMarkerTo.showInfoWindow();
                 drawRoute(locFrom, locTo);
                 HideSoftKeyboard(mSearchTextTo);
             }
@@ -199,12 +204,24 @@ public class HomeActivity extends AppCompatActivity
         else if(view == mIBtnMenu){
             mDrawer.openDrawer(mNavigationView);
         }
+        else if(view == mIBtnCurLoc){
+            moveCameraToCurrentLocation();
+        }
+        else if(view == mIBtnUniLoc){
+            moveCameraToUniversity();
+        }
     }
 
     @Override
     public boolean onMarkerClick(Marker marker) {
         if(marker.equals(mMarkerTo)){
+            Intent i = new Intent(HomeActivity.this, BuildingDetailsActivity.class);
 
+            Bundle bundle = new Bundle();
+            bundle.putString("location", mMarkerTo.getTitle());
+
+            i.putExtras(bundle);
+            startActivity(i);
         }
         return false;
     }

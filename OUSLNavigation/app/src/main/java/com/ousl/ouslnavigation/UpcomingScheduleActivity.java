@@ -29,7 +29,6 @@ public class UpcomingScheduleActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upcoming);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         getSupportActionBar().setTitle("Upcoming Activities");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
