@@ -18,7 +18,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".RoomDetailsActivity"></activity>
+        <activity android:name=".AnnouncementsActivity"></activity>
+        <activity android:name=".ProfileActivity" />
+        <activity android:name=".RoomDetailsActivity" />
         <activity android:name=".ViewScheduleActivity" />
         <activity android:name=".UpcomingScheduleActivity" />
         <activity android:name=".LoginActivity" />

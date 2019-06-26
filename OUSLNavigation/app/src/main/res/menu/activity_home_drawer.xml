@@ -22,7 +22,7 @@
             android:title="My Profile" />
     </group>
 
-    <item android:title="">
+    <!--<item android:title="">
         <menu>
             <item
                 android:id="@+id/nav_aboutus"
@@ -31,6 +31,6 @@
                 android:id="@+id/nav_help"
                 android:title="Help" />
         </menu>
-    </item>
+    </item>-->
 
 </menu>

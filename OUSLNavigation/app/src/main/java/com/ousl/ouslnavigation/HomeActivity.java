@@ -146,6 +146,9 @@ public class HomeActivity extends AppCompatActivity
         View header = mNavigationView.getHeaderView(0);
         TextView navName = (TextView) header.findViewById(R.id.nav_name);
         TextView navEmail = (TextView) header.findViewById(R.id.nav_email);
+
+        navName.setText(session.getName());
+        navEmail.setText(session.getEmail());
         mNavigationView.setNavigationItemSelectedListener(this);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -239,13 +242,12 @@ public class HomeActivity extends AppCompatActivity
                 Intent intent=new Intent(HomeActivity.this, UpcomingScheduleActivity.class);
                 startActivity(intent);
         } else if (id == R.id.nav_announcements) {
+            Intent intent=new Intent(HomeActivity.this, AnnouncementsActivity.class);
+            startActivity(intent);
 
         } else if (id == R.id.nav_settings) {
-
-        } else if (id == R.id.nav_aboutus) {
-
-        } else if (id == R.id.nav_help) {
-
+            Intent intent=new Intent(HomeActivity.this, ProfileActivity.class);
+            startActivity(intent);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

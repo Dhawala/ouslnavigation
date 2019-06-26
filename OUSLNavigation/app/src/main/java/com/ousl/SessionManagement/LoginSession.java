@@ -22,6 +22,13 @@ public class LoginSession extends SessionManager {
         return sharedPreferences.getString(KEY_NAME, null);
     }
 
+    public void setEmail(String email){
+        editor.remove(KEY_EMAIL);
+        editor.putString(KEY_EMAIL, email);
+
+        editor.commit();
+    }
+
     public String getEmail(){
         return sharedPreferences.getString(KEY_EMAIL, null);
     }
@@ -51,6 +58,16 @@ public class LoginSession extends SessionManager {
 
     public boolean isLoggedIn(){
         return sharedPreferences.getBoolean(IS_LOGIN, false);
+    }
+
+    public void logoutUser(){
+        editor.clear();
+        editor.commit();
+
+        Intent i = new Intent(context, LoginActivity.class);
+        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(i);
     }
 
 }
