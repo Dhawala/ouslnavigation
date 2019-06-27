@@ -80,6 +80,7 @@ public class BuildingDetailsActivity extends AppCompatActivity implements Adapte
                         listView.setAdapter(roomListView);
                     }
                     else{
+                        finish();
                         Toast.makeText(getApplicationContext(), "Invalid Query!", Toast.LENGTH_LONG).show();
                     }
                 } catch (JSONException e) {

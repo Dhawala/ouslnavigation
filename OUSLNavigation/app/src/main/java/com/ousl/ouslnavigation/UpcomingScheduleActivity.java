@@ -10,6 +10,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.Volley;
+import com.ousl.SessionManagement.LoginSession;
 import com.ousl.dbo.UpcomingRequest;
 import com.ousl.listview.UpcomingScheduleListView;
 import com.ousl.listview.ViewScheduleListView;
@@ -18,10 +19,16 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+
 public class UpcomingScheduleActivity extends AppCompatActivity {
 
     String course_code[], ac_name[], medium[], group[], date[], start_time[], end_time[], centre[], location[], room[];
+    String current_date;
 
+    private LoginSession session;
     ListView listView;
     UpcomingScheduleListView upcomingScheduleListView;
 
@@ -29,6 +36,12 @@ public class UpcomingScheduleActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upcoming);
+
+        Date d = Calendar.getInstance().getTime();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        current_date = df.format(d);
+
+        session = new LoginSession(getApplicationContext());
 
         getSupportActionBar().setTitle("Upcoming Activities");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -106,7 +119,7 @@ public class UpcomingScheduleActivity extends AppCompatActivity {
             }
         };
 
-        UpcomingRequest upcomingRequest = new UpcomingRequest("S13012418", "2019-06-01", "2019-06-01", responseListener, errorListener);
+        UpcomingRequest upcomingRequest = new UpcomingRequest(session.getSID(), current_date, current_date, responseListener, errorListener);
         RequestQueue queue = Volley.newRequestQueue(UpcomingScheduleActivity.this);
         queue.add(upcomingRequest);
     }

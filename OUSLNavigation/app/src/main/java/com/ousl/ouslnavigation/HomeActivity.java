@@ -47,6 +47,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.ousl.SessionManagement.LoginSession;
@@ -63,6 +64,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -544,8 +546,11 @@ public class HomeActivity extends AppCompatActivity
                             ShortestPath.nodes.get(no_to).adjacencies.add(new Edge(ShortestPath.nodes.get(no_from), weight));
 
                             if(isMainRoute.equals("Yes")){
-                                mMap.addPolyline(new MapUtil().createPolyline(coordinates, width+4, "#000000"));
-                                mMap.addPolyline(new MapUtil().createPolyline(coordinates, width, "#ffffff"));
+                                mMap.addPolyline(new MapUtil().createPolyline(coordinates, width+4, "#C0C0C0"));
+                                mMap.addPolyline(new MapUtil().createPolyline(coordinates, width, "#ffffff").zIndex(1));
+                            }
+                            else{
+                                mMap.addPolyline(new MapUtil().createPolyline(coordinates, width, "#80FF00"));
                             }
 
                         }
@@ -576,8 +581,9 @@ public class HomeActivity extends AppCompatActivity
 
         for(Polyline route: mPolylineRoute){
             route.remove();
-            mPolylineRoute.remove(route);
         }
+
+        mPolylineRoute.clear();
 
         ShortestPath.computePaths(ShortestPath.nodes.get(MapUtil.location_numbers.get(from)));
         List<Vertex> path = ShortestPath.getShortestPathTo(ShortestPath.nodes.get(MapUtil.location_numbers.get(to)));
@@ -588,7 +594,9 @@ public class HomeActivity extends AppCompatActivity
             int x = MapUtil.location_numbers.get(path.get(i).toString());
             int y = MapUtil.location_numbers.get(path.get(i+1).toString());
             String c = MapUtil.routes[x][y];
-            mMap.addPolyline(new MapUtil().createPolyline(c, 9, "#FF0000"));
+            System.out.println(c);
+            Polyline m = mMap.addPolyline(new MapUtil().createPolyline(c, 9, "#FF0000").zIndex(2));
+            mPolylineRoute.add(m);
         }
     }
 
