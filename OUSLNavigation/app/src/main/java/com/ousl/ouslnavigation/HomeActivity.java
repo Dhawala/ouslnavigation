@@ -204,6 +204,8 @@ public class HomeActivity extends AppCompatActivity
             }
             catch(NullPointerException e){
                 //do nothing
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
         }
         else if(view == mIBtnMenu){
@@ -280,7 +282,11 @@ public class HomeActivity extends AppCompatActivity
             mMap.setMinZoomPreference(18);
         }
 
-        mMap.addPolyline(new MapUtil().createPolyline(Constants.UNI_COORDINATES, 8, "#000000")).setWidth(8);
+        try {
+            mMap.addPolyline(new MapUtil().createPolyline(Constants.UNI_COORDINATES, 8, "#000000")).setWidth(8);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         drawBuildings();
         drawRoutes();
 
@@ -577,7 +583,7 @@ public class HomeActivity extends AppCompatActivity
 
     }
 
-    private void drawRoute(String from, String to){
+    private void drawRoute(String from, String to) throws JSONException {
 
         for(Polyline route: mPolylineRoute){
             route.remove();
